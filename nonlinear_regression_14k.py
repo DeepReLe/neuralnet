@@ -5,12 +5,13 @@ import random
 
 data = []
 
-iterations = 1000
-training_range_lower_bound = 10001
+iterations = 10000
+batch_size = 100
+training_range_lower_bound = 12000
 training_range_upper_bound = 14000
 num_inputs = 7
 num_outputs = 1
-step_size = 0.0005
+step_size = 0.000001
 
 muscle_activation = []
 f_out = []
@@ -42,16 +43,21 @@ def pullData():
 
 def trainData():
     global W_arr
+    global W2_arr
     global bias
     x = tf.placeholder(tf.float32, shape=(None, num_inputs))
     W = tf.Variable(tf.zeros([num_inputs,num_outputs]))
+    W2 = tf.Variable(tf.zeros([num_inputs, num_outputs]))
     b = tf.Variable(tf.zeros([num_outputs]))
 
-    y = tf.matmul(x,W) + b
+    y = tf.matmul(x,W) + tf.matmul(np.square(x),W2) + b
 
     y_ = tf.placeholder(tf.float32, shape=(None,num_outputs))
 
     cost = tf.reduce_mean(tf.square(y-y_))
+    #cost = -tf.reduce_sum(y_*tf.log(y) + (1-y_) * tf.log(1-y))
+    #cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_))
+
 
 
     train_step = tf.train.GradientDescentOptimizer(step_size).minimize(cost)
@@ -63,7 +69,7 @@ def trainData():
     for i in range(iterations): #iterations
         muscle_activation_batch = []
         f_out_batch = []
-        for k in range(100):
+        for k in range(batch_size):
             temprand = random.randint(1,training_range_lower_bound)
             muscle_activation_batch.append(muscle_activation[temprand])
             f_out_batch.append(f_out[temprand])
@@ -74,12 +80,16 @@ def trainData():
         print ("After %d iteration:" %i)
         print "W:"
         print sess.run(W)
+        print "W2:"
+        print sess.run(W2)
         print "b"
         print sess.run(b)
 
 
     W_arr = sess.run(W)
+    W2_arr = sess.run(W2)
     bias = sess.run(b)[0]
+
 
 
 
@@ -99,7 +109,7 @@ def getError():
                 predicted_muscle_activations.append(float(data[i][j]))
 
         for j,k in enumerate(W_arr):
-            predicted_value += predicted_muscle_activations[j]*k
+            predicted_value += predicted_muscle_activations[j]*k + (predicted_muscle_activations[j]**2)*W2_arr[j]
 
         predicted_value+=bias
         average_percentage_error += abs(predicted_value-expected_value)/expected_value
