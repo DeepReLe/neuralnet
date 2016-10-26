@@ -12,14 +12,14 @@ random.seed(1234)
 
 data = []
 
-iterations = 1980
+iterations = 1500
 batch_size = 200
 plot_period = 1
 training_range_lower_bound = 10000
 training_range_upper_bound = 14000
 num_inputs = 7
 num_outputs = 1
-step_size = 0.1
+step_size = 0.3
 
 muscle_activation = []
 f_out = []
@@ -62,9 +62,10 @@ def trainData():
 
     loss = (pt.wrap(x)
               .flatten()
-              .fully_connected(7, activation_fn=tf.nn.tanh, init=init_normal)
-              #.fully_connected(20, activation_fn=tf.nn.tanh, init=init_normal)
-              #.fully_connected(20, activation_fn=tf.nn.tanh, init=init_normal)
+              .fully_connected(20, activation_fn=tf.nn.tanh, init=init_normal)
+              .fully_connected(20, activation_fn=tf.nn.tanh, init=init_normal)
+              .fully_connected(20, activation_fn=tf.nn.tanh, init=init_normal)
+              .fully_connected(20, activation_fn=tf.nn.tanh, init=init_normal)
               .fully_connected(num_outputs, activation_fn=tf.nn.tanh, init=init_normal)
               .l2_regression(y))
 
@@ -82,9 +83,9 @@ def trainData():
     validation_x = muscle_activation[training_range_lower_bound:]
     validation_y = f_out[training_range_lower_bound:]
 
-    if os.path.isfile('pt_linear_14k'):
-        os.remove('pt_linear_14k.txt')
-    f = open('pt_linear_14k.txt', 'w')
+    if os.path.isfile('pt_fourlayered_14k.txt'):
+        os.remove('pt_fourlayered_14k.txt')
+    f = open('pt_fourlayered_14k.txt', 'w')
 
     i = 0
     with tf.Session() as sess:
@@ -212,11 +213,11 @@ def getError():
 pullData()
 trainData()
 #getError()
-f = open('pt_linear_14k.txt', 'r')
+f = open('pt_fourlayered_14k.txt', 'r')
 data2 = []
 for line in f:
     data2.append(line)
 
-plt.plot(data2[1800:])
+plt.plot(data2)
 plt.ylabel('MSE')
 plt.show()
